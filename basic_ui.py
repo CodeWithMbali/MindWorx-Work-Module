@@ -11,7 +11,7 @@ cursor = conn.cursor()
 
 while True:
 
-    print("\n===== STANDARD BANK CUSTOMER SYSTEM =====")
+    print("\n STANDARD BANK CUSTOMER SYSTEM")
     print("1. Add Customer")
     print("2. View Customer")
     print("3. Exit")
