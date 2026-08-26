@@ -1,62 +1,119 @@
 import pyodbc
 
-conn = pyodbc.connect(
-    "Driver={SQL Server};"
-    "Server=localhost\SQLEXPRESS04;"
-    "Database=master;"
-    "Trusted_Connection=yes;"
-)
 
-cursor = conn.cursor()
+def connect_to_database():
+    """
+    Establish connection to SQL Server database.
+    """
+    return pyodbc.connect(
+        "Driver={SQL Server};"
+        "Server=localhost\\SQLEXPRESS04;"
+        "Database=master;"
+        "Trusted_Connection=yes;"
+    )
 
-while True:
 
-    print("\n STANDARD BANK CUSTOMER SYSTEM")
+def add_customer(cursor, conn):
+    """
+    Add a new customer to the CUSTOMER table.
+    """
+    customer_id = input("Enter Customer ID: ")
+    customer_name = input("Enter Customer Name: ")
+
+    cursor.execute("""
+        INSERT INTO CUSTOMER
+        (CustomerID, CustomerName)
+        VALUES (?, ?)
+    """, (customer_id, customer_name))
+
+    conn.commit()
+    print("Customer added successfully!")
+
+
+def view_customer(cursor):
+    """
+    Retrieve a customer using their Customer ID.
+    """
+    customer_id = input("Enter Customer ID: ")
+
+    cursor.execute("""
+        SELECT CustomerID, CustomerName
+        FROM CUSTOMER
+        WHERE CustomerID = ?
+    """, (customer_id,))
+
+    result = cursor.fetchone()
+
+    if result:
+        print("\nCustomer Found")
+        print(f"ID: {result.CustomerID}")
+        print(f"Name: {result.CustomerName}")
+    else:
+        print("Customer not found.")
+
+
+def view_all_customers(cursor):
+    """
+    Display all customers in the database.
+    """
+    cursor.execute("""
+        SELECT CustomerID, CustomerName
+        FROM CUSTOMER
+    """)
+
+    results = cursor.fetchall()
+
+    if results:
+        print("\nCUSTOMER LIST")
+        print("-" * 30)
+
+        for customer in results:
+            print(f"ID: {customer.CustomerID} | Name: {customer.CustomerName}")
+    else:
+        print("No customers found.")
+
+
+def display_menu():
+    """
+    Display application menu.
+    """
+    print("\nSTANDARD BANK CUSTOMER SYSTEM")
     print("1. Add Customer")
     print("2. View Customer")
-    print("3. Exit")
+    print("3. View All Customers")
+    print("4. Exit")
 
-    choice = input("Select an option: ")
 
-    if choice == "1":
+def main():
+    """
+    Main application entry point.
+    """
+    conn = connect_to_database()
+    cursor = conn.cursor()
 
-        customer_id = input("Enter Customer ID: ")
-        customer_name = input("Enter Customer Name: ")
+    while True:
+        display_menu()
 
-        cursor.execute("""
-            INSERT INTO CUSTOMER
-            (CustomerID, CustomerName)
-            VALUES (?, ?)
-        """, (customer_id, customer_name))
+        choice = input("Select an option: ")
 
-        conn.commit()
+        if choice == "1":
+            add_customer(cursor, conn)
 
-        print("Customer added successfully!")
+        elif choice == "2":
+            view_customer(cursor)
 
-    elif choice == "2":
+        elif choice == "3":
+            view_all_customers(cursor)
 
-        customer_id = input("Enter Customer ID: ")
+        elif choice == "4":
+            print("Application Closed")
+            break
 
-        cursor.execute("""
-            SELECT CustomerID, CustomerName
-            FROM CUSTOMER
-            WHERE CustomerID = ?
-        """, (customer_id))
-
-        result = cursor.fetchone()
-
-        if result:
-            print("\nCustomer Found")
-            print("ID:", result.CustomerID)
-            print("Name:", result.CustomerName)
         else:
-            print("Customer not found.")
+            print("Invalid option. Please try again.")
 
-    elif choice == "3":
-        print("Application Closed")
-        break
+    conn.close()
 
-    else:
-        print("Invalid option")
 
-conn.close()
+if __name__ == "__main__":
+    main()
